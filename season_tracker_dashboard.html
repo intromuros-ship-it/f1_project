@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포디움 예측 트래커</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root {
+    --bg: #131316;
+    --surface: #1c1c20;
+    --surface-2: #232328;
+    --border: #2e2e34;
+    --text: #e8e8ea;
+    --text-dim: #8b8b93;
+    --text-mute: #5c5c63;
+    --accent: #e10600;
+    --accent-dim: #7a0904;
+    --hit: #1baf7a;
+    --hit-bg: #0d2a20;
+    --miss: #3a3a40;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    padding: 0 0 3rem;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .header h1 { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: 0.02em; }
+  .header .live-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); margin-right: 8px; vertical-align: 2px;
+  }
+  .header .sub { font-family: var(--mono); font-size: 12px; color: var(--text-mute); }
+
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.75rem; }
+  .stat-tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px 10px; text-align: center;
+  }
+  .stat-tile .label { font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .stat-tile .value { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--text); }
+  .stat-tile .value.accent { color: var(--accent); }
+
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 1.75rem; position: relative; height: 180px; }
+
+  .section-label { font-family: var(--mono); font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 10px 2px; }
+
+  .race-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .race-card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .race-name { font-size: 14px; font-weight: 600; }
+  .race-round { font-family: var(--mono); font-size: 11px; color: var(--text-mute); }
+  .hit-badge {
+    font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+  }
+  .hit-badge.h3 { background: var(--hit-bg); color: var(--hit); }
+  .hit-badge.h12 { background: #2a2410; color: #d9a441; }
+  .hit-badge.h0 { background: #2a1414; color: #c25050; }
+  .hit-badge.pending { background: var(--surface-2); color: var(--text-mute); }
+
+  .podium-row { display: flex; gap: 8px; }
+  .podium-col { flex: 1; }
+  .podium-col .col-label { font-size: 10px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .driver-pill {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px;
+    padding: 4px 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .driver-pill .pos { color: var(--text-mute); font-size: 11px; }
+  .driver-pill.match { border-color: var(--hit); background: var(--hit-bg); color: var(--hit); }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-dim); }
+  .empty-state h2 { font-size: 15px; color: var(--text); margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; margin: 0 0 1.25rem; }
+  .file-input-wrap { display: inline-block; }
+  .file-input-wrap input[type=file] {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;
+  }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2 class="sr-only">2026시즌 F1 포디움 예측 결과를 추적하는 대시보드. 누적 적중률과 레이스별 예측 대 실제 결과를 보여준다.</h2>
+
+  <div class="header">
+    <h1><span class="live-dot"></span>포디움 예측 트래커</h1>
+    <span class="sub" id="season-label">2026 SEASON</span>
+  </div>
+
+  <div id="content">
+    <div class="empty-state">
+      <h2>season_tracker.json을 불러오는 중...</h2>
+      <p>자동으로 못 찾으면 아래에서 직접 파일을 선택해주세요.<br>(step12_update_tracker.py가 생성하는 파일입니다)</p>
+      <div class="file-input-wrap">
+        <input type="file" id="file-input" accept="application/json">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function renderDashboard(data) {
+  const races = data.races || [];
+  const summary = data.summary || { total_races: 0, average_hits: 0, hit_rate: 0 };
+  const completed = races.filter(r => r.status === 'completed');
+  const pending = races.filter(r => r.status !== 'completed');
+
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  if (races.length === 0) {
+    content.innerHTML = '<div class="empty-state"><h2>아직 기록된 레이스가 없습니다</h2><p>step8_predict_upcoming.py와 step12_update_tracker.py를 실행하면 데이터가 쌓이기 시작합니다.</p></div>';
+    return;
+  }
+
+  const statRow = document.createElement('div');
+  statRow.className = 'stat-row';
+  statRow.innerHTML =
+    '<div class="stat-tile"><div class="label">완료 레이스</div><div class="value">' + summary.total_races + '</div></div>' +
+    '<div class="stat-tile"><div class="label">평균 적중</div><div class="value accent">' + (summary.average_hits || 0).toFixed(2) + '<span style="font-size:14px;color:var(--text-mute)">/3</span></div></div>' +
+    '<div class="stat-tile"><div class="label">적중률</div><div class="value">' + Math.round((summary.hit_rate || 0) * 100) + '%</div></div>';
+  content.appendChild(statRow);
+
+  if (completed.length > 0) {
+    const chartBox = document.createElement('div');
+    chartBox.className = 'chart-box';
+    chartBox.innerHTML = '<canvas id="trend-chart" role="img" aria-label="레이스별 누적 평균 적중 추이 라인 차트">누적 평균 적중: ' +
+      completed.map(r => r.hits).join(', ') + '</canvas>';
+    content.appendChild(chartBox);
+  }
+
+  const pendingLabel = document.createElement('div');
+  const allSorted = races.slice().sort((a, b) => (b.year - a.year) || (b.round - a.round));
+
+  const listLabel = document.createElement('div');
+  listLabel.className = 'section-label';
+  listLabel.textContent = '레이스별 기록';
+  content.appendChild(listLabel);
+
+  allSorted.forEach(race => {
+    const card = document.createElement('div');
+    card.className = 'race-card';
+
+    let badgeHtml;
+    if (race.status !== 'completed') {
+      badgeHtml = '<span class="hit-badge pending">예측 대기중</span>';
+    } else {
+      const cls = race.hits === 3 ? 'h3' : (race.hits >= 1 ? 'h12' : 'h0');
+      badgeHtml = '<span class="hit-badge ' + cls + '">' + race.hits + '/3 적중</span>';
+    }
+
+    const actualSet = new Set(race.actual_top3 || []);
+
+    let podiumHtml = '<div class="podium-row">';
+    podiumHtml += '<div class="podium-col"><div class="col-label">예측</div>';
+    (race.predicted_top3 || []).forEach((d, i) => {
+      const isMatch = actualSet.has(d);
+      podiumHtml += '<div class="driver-pill' + (isMatch ? ' match' : '') + '"><span>' + d + '</span><span class="pos">P' + (i + 1) + '</span></div>';
+    });
+    podiumHtml += '</div>';
+
+    podiumHtml += '<div class="podium-col"><div class="col-label">실제</div>';
+    if (race.actual_top3) {
+      race.actual_top3.forEach((d, i) => {
+        podiumHtml += '<div class="driver-pill"><span>' + d + '</span><span class="pos">P' + (i + 1) + '</span></div>';
+      });
+    } else {
+      podiumHtml += '<div class="driver-pill" style="color:var(--text-mute)">레이스 전</div>';
+    }
+    podiumHtml += '</div></div>';
+
+    card.innerHTML =
+      '<div class="race-card-head">' +
+        '<div><div class="race-name">' + (race.event_name || ('Round ' + race.round)) + '</div>' +
+        '<div class="race-round">' + race.year + ' · ROUND ' + race.round + '</div></div>' +
+        badgeHtml +
+      '</div>' + podiumHtml;
+
+    content.appendChild(card);
+  });
+
+  if (completed.length > 0) {
+    const labels = completed.slice().reverse().map((r, i) => 'R' + r.round);
+    let cumHits = 0, cumRaces = 0;
+    const cumRateData = completed.slice().reverse().map(r => {
+      cumHits += r.hits; cumRaces += 1;
+      return +(cumHits / (cumRaces * 3) * 100).toFixed(1);
+    });
+    const baselineData = labels.map(() => 33.3);
+
+    new Chart(document.getElementById('trend-chart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: '누적 적중률(%)',
+            data: cumRateData,
+            borderColor: '#e10600',
+            backgroundColor: 'rgba(225,6,0,0.08)',
+            fill: true,
+            tension: 0.25,
+            pointRadius: 3,
+            pointBackgroundColor: '#e10600',
+          },
+          {
+            label: '무작위 기준선(15%)',
+            data: labels.map(() => 15),
+            borderColor: '#5c5c63',
+            borderDash: [4, 4],
+            pointRadius: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#2e2e34' }, ticks: { color: '#8b8b93', font: { size: 10 } } },
+          y: { grid: { color: '#2e2e34' }, ticks: { color: '#8b8b93', font: { size: 10 } }, min: 0, max: 100 },
+        },
+      },
+    });
+  }
+}
+
+async function tryFetchLocal() {
+  try {
+    const res = await fetch('./season_tracker.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('not found');
+    const data = await res.json();
+    renderDashboard(data);
+  } catch (e) {
+    // fetch 실패 (file:// 로컬 오픈 등) - 파일 선택 대기 상태 유지
+  }
+}
+
+document.getElementById('file-input')?.addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (evt) {
+    try {
+      const data = JSON.parse(evt.target.result);
+      renderDashboard(data);
+    } catch (err) {
+      alert('JSON 파일을 읽는 중 오류가 발생했습니다: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+tryFetchLocal();
+</script>
+</body>
+</html>

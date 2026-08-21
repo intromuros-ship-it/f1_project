@@ -1,0 +1,10 @@
+{
+  "name": "포디움 예측 트래커",
+  "short_name": "F1예측트래커",
+  "description": "F1 포디움 예측 결과를 매주 자동으로 기록하고 추적하는 대시보드",
+  "start_url": "./season_tracker_dashboard.html",
+  "display": "standalone",
+  "background_color": "#131316",
+  "theme_color": "#e10600",
+  "icons": []
+}
