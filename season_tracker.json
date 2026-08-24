@@ -5,9 +5,18 @@
       "round": 12,
       "event_name": "Dutch Grand Prix",
       "predicted_top3": [
-        "NOR",
-        "ANT",
-        "RUS"
+        {
+          "driver": "NOR",
+          "probability": 0.8
+        },
+        {
+          "driver": "ANT",
+          "probability": 0.735
+        },
+        {
+          "driver": "RUS",
+          "probability": 0.669
+        }
       ],
       "status": "completed",
       "actual_top3": [
