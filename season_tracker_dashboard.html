@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>포디움 예측 트래커</title>
 <link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="F1예측트래커">
+<meta name="theme-color" content="#131316">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
   :root {
     --bg: #131316;
@@ -83,7 +88,9 @@
     padding: 4px 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;
   }
   .driver-pill .pos { color: var(--text-mute); font-size: 11px; }
+  .driver-pill .prob { color: var(--accent); font-size: 10px; font-weight: 500; margin: 0 6px; }
   .driver-pill.match { border-color: var(--hit); background: var(--hit-bg); color: var(--hit); }
+  .driver-pill.match .prob { color: var(--hit); opacity: 0.8; }
 
   .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-dim); }
   .empty-state h2 { font-size: 15px; color: var(--text); margin-bottom: 8px; }
@@ -172,9 +179,12 @@ function renderDashboard(data) {
 
     let podiumHtml = '<div class="podium-row">';
     podiumHtml += '<div class="podium-col"><div class="col-label">예측</div>';
-    (race.predicted_top3 || []).forEach((d, i) => {
-      const isMatch = actualSet.has(d);
-      podiumHtml += '<div class="driver-pill' + (isMatch ? ' match' : '') + '"><span>' + d + '</span><span class="pos">P' + (i + 1) + '</span></div>';
+    (race.predicted_top3 || []).forEach((item, i) => {
+      const driverCode = typeof item === 'string' ? item : item.driver;
+      const prob = (item && typeof item === 'object' && item.probability != null) ? item.probability : null;
+      const isMatch = actualSet.has(driverCode);
+      const probHtml = prob != null ? '<span class="prob">' + Math.round(prob * 100) + '%</span>' : '';
+      podiumHtml += '<div class="driver-pill' + (isMatch ? ' match' : '') + '"><span>' + driverCode + '</span>' + probHtml + '<span class="pos">P' + (i + 1) + '</span></div>';
     });
     podiumHtml += '</div>';
 
