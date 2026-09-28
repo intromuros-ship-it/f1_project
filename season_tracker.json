@@ -80,12 +80,39 @@
       ],
       "hits": 3,
       "note": "자동화 오류로 사전예측 기회를 놓쳐 사후 소급 반영됨"
+    },
+    {
+      "year": 2026,
+      "round": 15,
+      "event_name": "Azerbaijan Grand Prix",
+      "predicted_top3": [
+        {
+          "driver": "RUS",
+          "probability": 0.576
+        },
+        {
+          "driver": "PIA",
+          "probability": 0.518
+        },
+        {
+          "driver": "LEC",
+          "probability": 0.452
+        }
+      ],
+      "status": "completed",
+      "actual_top3": [
+        "RUS",
+        "VER",
+        "HAD"
+      ],
+      "hits": 1,
+      "note": "자동화 오류로 사전예측 기회를 놓쳐 사후 소급 반영됨"
     }
   ],
   "summary": {
-    "total_races": 3,
-    "total_hits": 7,
-    "average_hits": 2.33,
-    "hit_rate": 0.778
+    "total_races": 4,
+    "total_hits": 8,
+    "average_hits": 2.0,
+    "hit_rate": 0.667
   }
 }
