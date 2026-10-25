@@ -161,6 +161,28 @@
       ],
       "hits": 3,
       "note": "자동화 오류로 사전예측 기회를 놓쳐 사후 소급 반영됨"
+    },
+    {
+      "year": 2026,
+      "round": 18,
+      "event_name": "United States Grand Prix",
+      "predicted_top3": [
+        {
+          "driver": "ANT",
+          "probability": 0.873
+        },
+        {
+          "driver": "VER",
+          "probability": 0.755
+        },
+        {
+          "driver": "LEC",
+          "probability": 0.751
+        }
+      ],
+      "status": "predicted",
+      "actual_top3": null,
+      "hits": null
     }
   ],
   "summary": {
