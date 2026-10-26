@@ -180,15 +180,19 @@
           "probability": 0.751
         }
       ],
-      "status": "predicted",
-      "actual_top3": null,
-      "hits": null
+      "status": "completed",
+      "actual_top3": [
+        "ANT",
+        "LEC",
+        "VER"
+      ],
+      "hits": 3
     }
   ],
   "summary": {
-    "total_races": 6,
-    "total_hits": 13,
-    "average_hits": 2.17,
-    "hit_rate": 0.722
+    "total_races": 7,
+    "total_hits": 16,
+    "average_hits": 2.29,
+    "hit_rate": 0.762
   }
 }
