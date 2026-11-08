@@ -233,15 +233,19 @@
           "probability": 0.801
         }
       ],
-      "status": "predicted",
-      "actual_top3": null,
-      "hits": null
+      "status": "completed",
+      "actual_top3": [
+        "NOR",
+        "VER",
+        "HAD"
+      ],
+      "hits": 1
     }
   ],
   "summary": {
-    "total_races": 8,
-    "total_hits": 18,
-    "average_hits": 2.25,
-    "hit_rate": 0.75
+    "total_races": 9,
+    "total_hits": 19,
+    "average_hits": 2.11,
+    "hit_rate": 0.704
   }
 }
