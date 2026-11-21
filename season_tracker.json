@@ -240,6 +240,28 @@
         "HAD"
       ],
       "hits": 1
+    },
+    {
+      "year": 2026,
+      "round": 21,
+      "event_name": "Las Vegas Grand Prix",
+      "predicted_top3": [
+        {
+          "driver": "VER",
+          "probability": 0.885
+        },
+        {
+          "driver": "ANT",
+          "probability": 0.73
+        },
+        {
+          "driver": "RUS",
+          "probability": 0.8
+        }
+      ],
+      "status": "predicted",
+      "actual_top3": null,
+      "hits": null
     }
   ],
   "summary": {
